@@ -33,7 +33,7 @@ image:https://github.com/qiqipchy/dbc.docs/blob/master/images/inverted%20index.p
 - `solr doc`中只含有`<field>`元素，`<field>`元素拥有一个属性为`name`，其取值范围为定义在`schema.xml`中`<field>`的`name`属性取值集合，相当于是通过`name`属性引用`schema.xml`中定义好的`<field>`元素，在`schema.xml`中定义了`<field>`元素的常用属性：
 +
 ```xml
-注：example for <field> in schema.xml
+注：example for <field> in schema.xml 
 <field name="FIELD_NAME" type="REF_FIELDTYPE_NAME" index="true" stored="true" multiValued="false"/>
 ```
 
