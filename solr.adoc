@@ -20,7 +20,7 @@ image:https://github.com/qiqipchy/dbc.docs/blob/master/images/inverted%20index.p
 
 * 用于index的一个 `solr doc` 可采用xml格式进行表示(也可以有别的格式如json,这里着重介绍xml格式)，根元素为 `<doc>` 。如下所示：
 +
- ```xml
+```xml
 注：该example.xml文件中只含有一个solr doc
 <doc>
   <field name="REF_FIELD1_NAME">FIELD_1_TEXT</field>
@@ -28,20 +28,20 @@ image:https://github.com/qiqipchy/dbc.docs/blob/master/images/inverted%20index.p
   <field name="REF_FIELD3_NAME">FIELD_3_TEXT</field>
   …………
 </doc>
- ```
+```
 
 -  `solr doc` 中只含有 `<field>` 元素， `<field>` 元素拥有一个属性为 `name` ，其取值范围为定义在 `schema.xml` 中 `<field>` 的 `name` 属性取值集合，相当于是通过 `name` 属性引用 `schema.xml` 中定义好的 `<field>` 元素，在 `schema.xml` 中定义了 `<field>` 元素的常用属性：
 +
- ```xml
+```xml
 注：example for <field> in schema.xml
 <field name="FIELD_NAME" type="REF_FIELDTYPE_NAME" index="true" stored="true" multiValued="false"/>
- ```
+```
 
 ** 包括该元素的类型： `type` 
 
 *** 类型决定了 `<field>` 元素中的文本数据怎么解析，存储以及搜索，通过引用 `<fieldType>` 元素的 `name` 属性确定。 `<fieldType>` 需在 `schema.xml` 定义，主要确定了 `<field>` 元素中文本的类型，以及进行index过程和query过程的 `<analyzer>` 
 +
- ```xml
+```xml
 
 
 注：example for <fieldType>。通过定义<fieldType>元素中的<analyzer>子元素设定用于index过程和用于query过程的analyzer，两者可以相同，也可以不同。
@@ -62,7 +62,7 @@ image:https://github.com/qiqipchy/dbc.docs/blob/master/images/inverted%20index.p
 </fieldType>
 
 注：<fieldType>还拥有额外的高级性质和子元素
- ```
+```
 
 ** 是否为多值： `multiValued` 
 
@@ -120,68 +120,68 @@ S. 发出搜索请求，得到相应；( `*_SolrJ API_*` )
 
 *  `**_field_int*` :
 +
- ```xml
+```xml
 <dynamicField name="*_field_int" type="ints" indexed="true" stored="true"/>
  ``  `
 +
- ```xml
+```xml
 <fieldType name="ints" class="solr.TrieIntField" positionIncrementGap="0" docValues="true" multiValued="true" precisionStep="0"/>
 
- ```
+```
 
 
 *  `**_field_boolean*` :
 +
- ```xml
+```xml
 <dynamicField name="*_field_boolean" type="booleans" indexed="true" stored="true"/>
- ```
+```
 +
- ```xml
+```xml
 <fieldType name="booleans" class="solr.BoolField" sortMissingLast="true" multiValued="true"/>
- ```
+```
 
 *  `**_field_str*` :
 +
- ```xml
+```xml
 <dynamicField name="*_field_str" type="strings" indexed="true" stored="true"/>
- ```
+```
 +
- ```xml
+```xml
 <fieldType name="strings" class="solr.StrField" sortMissingLast="true" docValues="true" multiValued="true"/>
- ```
+```
 *  `**_field_text*` :
 +
- ```xml
+```xml
 <dynamicField name="*_field_text" type="textMaxWords" indexed="true" stored="true"/>
- ```
+```
 +
- ```xml
+```xml
 <fieldType name="textMaxWords" class="solr.TextField" positionIncrementGap="100" multiValued="true">
   <analyzer>
      <tokenizer class="com.chenlb.mmseg4j.solr.MMSegTokenizerFactory" mode="max-word"/>
   </analyzer>
 </fieldType>
- ```
+```
 
 *  `**_field_coor*` :
 +
- ```xml
+```xml
 <dynamicField name="*_field_coor" type="location" multiValued="true" indexed="true" stored="true"/>
- ```
+```
 +
- ```xml
+```xml
 <fieldType name="location" class="solr.LatLonPointSpatialField" docValues="true"/>
- ```
+```
 
 *  `**_field_double*` :
 +
  `` xml
 <dynamicField name="*_field_double" type="doubles" indexed="true" stored="true"/>
- ```
+```
 +
- ```xml
+```xml
 <fieldType name="doubles" class="solr.TrieDoubleField" positionIncrementGap="0" docValues="true" multiValued="true" precisionStep="0"/>
- ```
+```
 
 ==== Step B：构建用于 `index` 的 `Solr doc` 整体结构
 
@@ -213,7 +213,7 @@ S. 发出搜索请求，得到相应；( `*_SolrJ API_*` )
 
 . 因此用于 `index` 的一个完整的 `solr doc` 结构如下所示：
 +
- ```xml
+```xml
 <doc>
     <field name="id">JSONDATA_DOCID</field>
     <field name="baseId">JSONDATA_FORMID</field>
@@ -227,16 +227,16 @@ S. 发出搜索请求，得到相应；( `*_SolrJ API_*` )
     <field name="5_field_coor">39.887334591956794,116.28375411246358</field>
     <field name="6_field_double">9.0</field>
 </doc>
- ```
+```
 * 排序结构（*_最终结构_*)
 +
 . 在 `Solr` 中无法对 `multivalued=true` 的 `<field>` 进行 `sort` 排序；
 
 - 解决方案：对以上提到的6种 `<dynamicField>` 的进行扩中，增加用于排序的 `<dynamicField>` 。以 `*_field_int` 为例，增加
 +
- ```xml
+```xml
 <dynamicField name="*_field_int_sort" type="int" sortMissingLast="true" indexed="false" stored="false"/>
- ```
+```
 +
 .增加排序x相关的 `field` 
 [options="header",cols="^m,^m,^m"]
@@ -250,24 +250,24 @@ S. 发出搜索请求，得到相应；( `*_SolrJ API_*` )
 
 - 对上述的 `jsondata` 建立排序结构：
 +
- ```xml
+```xml
     ……
     <field name="1_field_int">1</field>
     <field name="1_field_int">2</field>
     <field name="1_1_field_int_sort">1</field>
     <field name="2_1_field_int_sort">2</field>
     ……
- ```
+```
 
 . 对于 `*_field_text` 来说，由于对原始文本进行了分词，所以添加相关排序 `<field>` 时，需要将 `type` 设置为 `strings` ，存储原始文本；
 +
- ```xml
+```xml
   <dynamicField name="*_field_text_sort" type="string" sortMissingLast="true" indexed="false" stored="false"/>
- ```
+```
 
 因此对上述的 `jsondata` 建立的最终 `solr doc` 如下所示：
 
- ```xml
+```xml
 <doc>
     <field name="id">JSONDATA_DOCID</field>
     <field name="baseId">JSONDATA_FORMID</field>
@@ -294,7 +294,7 @@ S. 发出搜索请求，得到相应；( `*_SolrJ API_*` )
     <field name="1_6_field_double_sort">9.0</field>
 
 </doc>
- ```
+```
 ==== Step C：建立 `inverted index` 
 
 * 借助 `solrClient.add(SolrDocument document)` 方法将上一步骤中构建好的 `solr doc` 添加到 `Solr server` 中，自动完成 `index` 的过程，生成 `inverted index` ；
