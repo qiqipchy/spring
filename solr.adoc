@@ -1,5 +1,5 @@
 :toc: left
-:toclevels: 10
+:toclevels: 3
 :toc-title: 目录
 = Solr设计文档
 吴渊渊
@@ -80,10 +80,6 @@ example for <fieldType>
 **** true表示存储该<field>元素的中文本内容，使用solr进行检索时，返回结果中显示该<field>元素中的文本；
 
 **** 一般debug时设置为true，上线运行时无需设置为true
-
-
-*** Schema.xml用于将doc映射为可检索的Luence index。其中含有可能会用到的field和field types.(6.6.0版本中的schema.xml文件为managed-schema文件)
-
 
 * 整个index流程如下：
 
