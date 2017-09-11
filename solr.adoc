@@ -194,7 +194,7 @@ S. 发出搜索请求，得到相应；( `*_SolrJ API_*` )
 
 +
 .example for jsondata
-[options="header,footer",cols="^m,^m,^m,^m,^m,^m,^m,^m"]
+[options="header,footer",cols="^,^,^,^,^,^,^,^"]
 |=======================
 |docId              2+|fid 1    |fid 2      |fid 3  |fid 4      |fid 5  |fid 6
 |JSONDATA_DOCID     |1  |2      |true       |STR    |TEXT TEXT  |39.887334591956794,116.28375411246358  |9.0
@@ -239,7 +239,7 @@ S. 发出搜索请求，得到相应；( `*_SolrJ API_*` )
 ```
 +
 .增加排序x相关的 `field` 
-[options="header",cols="^m,^m,^m"]
+[options="header",cols="^,^,^"]
 |=======================
 |               |*_field_int                |*_field_int_sort
 |格式说明       |fid_field_int              |vid_fid_field_int_sort
