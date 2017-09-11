@@ -26,29 +26,29 @@ image::inverted index.jpg[inverted-index,300,200]
 ```xml
 注：该example.xml文件中只含有一个solr doc
 <document>
-	<field name="FIELD1_REF_NAME">FIELD_1_TEXT</field>
-	<field name="FIELD2_REF_NAME">FIELD_2_TEXT</field>
-	<field name="FIELD3_REF_NAME">FIELD_3_TEXT</field>
+	<field name="REF_FIELD1_NAME">FIELD_1_TEXT</field>
+	<field name="REF_FIELD2_NAME">FIELD_2_TEXT</field>
+	<field name="REF_FIELD3_NAME">FIELD_3_TEXT</field>
 	…………
 </document>
 ```
 
 ** solr doc中只含有<field>元素，<field>元素拥有一个属性为name，其取值范围为定义在schema.xml中<field>的name属性取值集合，相当于是通过name属性引用schema.xml中定义好的<field>元素，在schema.xml中定义了<field>元素的常用属性：
 
-```xml
+*** ```xml
 example for <field> in schema.xml
-<field name="FIELD_NAME" type="FIELDTYPE_REF_NAME" index="true" stored="true" multiValued="false"/>
+<field name="FIELD_NAME" type="REF_FIELDTYPE_NAME" index="true" stored="true" multiValued="false"/>
 ```
 
-**** 包括该元素的类型：type
+-- 包括该元素的类型：type
 
-***** 类型决定了该节点中的文本数据怎么解析，存储以及搜索，通过引用<fieldType>元素的name属性确定。<fieldType>需在schema.xml定义，主要确定了<field>元素中文本的类型，以及进行index过程和query过程的<analyzer>
+**** 类型决定了<field>元素中的文本数据怎么解析，存储以及搜索，通过引用<fieldType>元素的name属性确定。<fieldType>需在schema.xml定义，主要确定了<field>元素中文本的类型，以及进行index过程和query过程的<analyzer>
 
 
 ```xml
 example for <fieldType>
 
-注：analyze的功能通过定义<fieldType>元素中的<analyzer>子元素完成，在<analyzer>元素中指定属性type的值可设定用于index过程和用于query过程的analyzer，两者可以相同，也可以不同。
+注：通过定义<fieldType>元素中的<analyzer>子元素设定用于index过程和用于query过程的analyzer，两者可以相同，也可以不同。
 
 <fieldType name="text_general_rev" class="solr.TextField" positionIncrementGap="100">
     <analyzer type="index">
@@ -65,7 +65,7 @@ example for <fieldType>
     </analyzer>
 </fieldType>
 
-注：fieldType中还有额外的高级性质和子元素
+注：<fieldType>还拥有额外的高级性质和子元素
 ```
 
 *** 是否为多值：multiValued
