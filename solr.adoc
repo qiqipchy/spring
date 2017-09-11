@@ -20,7 +20,7 @@ v1.0, 2017-08-17
 [link=https://github.com/qiqipchy/dbc.docs/blob/master/images/inverted%20index.png?raw=true]
 image::inverted index.jpg[inverted-index,300,200]
 
-* 对slor doc进行analyze，进而存储为inverted index的过程成为index，对输入字符串进行analyze，进而在inverted index中进行查询的过程称为query；
+* 对slor doc中<field>元素的文本进行analyze，进而讲文本存储为inverted index的过程成为index；对输入的查询字符串字符串进行analyze，进而在inverted index中进行检索的过程称为query；
 
 * 用于index的一个solr doc可采用xml格式进行表示(也可以有别的格式如json,这里着重介绍xml格式)，根元素为document,。如下所示example.xml：
 ```xml
