@@ -1,0 +1,228 @@
+:toc: left
+:toclevels: 3
+:toc-title: 目录
+= Solr设计文档
+吴渊渊
+v1.0, 2017-08-17
+:numbered:
+== 基本设计方案
+
+搜索内容为叶节点中的内容，所以将整个form中的数据jsondata平铺为一个solr doc用以index进行之后的搜索，
+也就是说solr doc中的<field>文本区存储的是dbc doc中叶节点的文本内容。
+这种结构最大程度保持了一条jsondata数据中各个字段之间的联系，将一个jsondata转换为solr中可进行查询排序操作的一个doc，
+方便进行多字段之间的联合查找以及查询结果的按列排序。
+
+=== solr基本介绍
+* solr使用inverted index进行文档的搜索；存储的是term和对应的docId，以term为中心；如图所示：
+
+[#img-inverted index]
+.inverted index
+[link=https://github.com/qiqipchy/dbc.docs/blob/master/images/inverted%20index.png?raw=true]
+image::inverted index.jpg[inverted-index,300,200]
+
+* 对slor doc进行analyze，进而存储为inverted index的过程成为index，对输入字符串进行analyze，进而在inverted index中进行查询的过程称为query；
+
+* 用于index的一个solr doc可采用xml格式进行表示(也可以有别的格式如json,这里着重介绍xml格式)，根元素为document,。如下所示example.xml：
+```xml
+注：该xml文件中只含有一个solr doc
+<document>
+	<field name="FIELD1_REF_NAME">FIELD_1_TEXT</field>
+	<field name="FIELD2_REF_NAME">FIELD_2_TEXT</field>
+	<field name="FIELD3_REF_NAME">FIELD_3_TEXT</field>
+	…………
+</document>
+```
+
+** 每一个solr doc中只含有<field>元素，<filed>元素拥有一个属性为name，其取值范围为定义在schema.xml中<field>的name属性取值集合，相当于是通过name属性引用schema.xml中定义好的<field>元素，在schema.xml中定义了<field>元素的所有属性：
+
+```xml
+example for <field> in schema.xml
+<field name="FIELD_NAME" type="FIELDTYPE_REF_NAME" index="true" stored="true" multiValued="false"/>
+```
+
+*** 包括该元素的类型：type
+
+**** 类型决定了该节点中的文本数据怎么解析，存储以及搜索，通过引用<fieldType>元素的name属性确定。<fieldType>需在schema.xml定义，主要确定了<field>元素中文本的类型，以及进行index过程和query过程的<analyzer>
+
+
+```xml
+example for <fieldType>
+
+注：analyze的功能通过定义<fieldType>元素中的<analyzer>子元素完成，在<analyzer>元素中指定属性type的值可设定用于index过程和用于query过程的analyzer，两者可以相同，也可以不同。
+
+<fieldType name="text_general_rev" class="solr.TextField" positionIncrementGap="100">
+    <analyzer type="index">
+        <tokenizer class="com.chenlb.mmseg4j.solr.MMSegTokenizerFactory"/>
+        <filter class="solr.StopFilterFactory" words="stopwords.txt" ignoreCase="true"/>
+        <filter class="solr.LowerCaseFilterFactory"/>
+        <filter class="solr.ReversedWildcardFilterFactory" maxPosQuestion="2" maxFractionAsterisk="0.33" maxPosAsterisk="3" withOriginal="true"/>
+    </analyzer>
+    <analyzer type="query">
+        <tokenizer class="com.chenlb.mmseg4j.solr.MMSegTokenizerFactory"/>
+        <filter class="solr.SynonymGraphFilterFactory" expand="true" ignoreCase="true" synonyms="synonyms.txt"/>
+        <filter class="solr.StopFilterFactory" words="stopwords.txt" ignoreCase="true"/>
+        <filter class="solr.LowerCaseFilterFactory"/>
+    </analyzer>
+</fieldType>
+
+注：fieldType中还有额外的高级性质和子元素
+```
+
+*** 是否为多值：multiValued
+
+**** 如果为true，则上文中的example.xml中的solr doc中可出现多个name属性值相同的<field>元素；如果为false，则只能出现一个
+
+*** 是否为可检索的：index
+
+**** 一般都设置为true
+
+*** 是否需要存储：stored
+
+**** true表示存储该<field>元素的中文本内容，使用solr进行检索时，返回结果中显示该<field>元素中的文本；
+
+**** 一般debug时设置为true，上线运行时无需设置为true
+
+
+*** Schema.xml用于将doc映射为可检索的Luence index。其中含有可能会用到的field和field types.(6.6.0版本中的schema.xml文件为managed-schema文件)
+
+
+* 整个index流程如下：
+
+[#img-index process]
+.index process
+[link=https://github.com/qiqipchy/dbc.docs/blob/master/images/solr%20index.png?raw=true]
+image::index process.jpg[index process,300,200]
+
+* 因此建立solr应用的步骤为
+
+- 1:确定schema.xml中的<field>元素和<fieldType>；
+
+- 2:根据<field>和<fieldType>将每一条jsondata转换为可用于进行index的Solr doc；
+
+- 3:将2中的doc加入到solr服务器中，完成index的建立；
+
+- 4:解析用户搜索，建立用于solr搜索的url;
+
+- 5:发出搜索请求，得到相应；
+
+=== 设计内容
+
+==== <field>确定
+
+* 由于用户可自我设计dbc field名称，因此在solr doc中，<field>属性name值的基本格式为field_fid，查询存储都比较简洁；
+
+* 由于dbc每个form的field id不同，总数不同，因此将field_fid设计成为<dynamicField>类型，也就是field_*；
+
+* 不同的<fieldType>代表了在index和query的过程中进行不同的处理操作，因此根据dbc field，将field_fid进一步分为几大类，field_text_fid，field_double_fid，field_boolean_fid，field_list_fid，field_coord_fid；
+
+- 也就是field_text_*，field_double_*，field_boolean_*，field_list_*，field_coord_*；
+
+* 由于拓展的存在，所以每个<field>都设计成为multiValued=true，用以存储同一dbc field的多个值；
+在query的时候，由于最后只需返回inverted index中的id，所以其他<field>(除boolean之外，因为在产品中boolean类型对应的字段不会进行拓展)全部设置为stored=false；
+
+* <field>中的文本内容可能需要进行排序等高级操作，所以设置为index=true；
+
+==== <fieldType>的确定
+
+对field_text_*，field_double_*，field_boolean_*，field_list_*进行fieldType的确认，目前的基本方案为：
+
+* field_text_*:
+```xml
+<dynamicField name="field_text_*" type="text_general_rev" multiValued="true" indexed="true" stored="false"/>
+```
+```xml
+- 注：com.chenlb.mmseg4j.solr.MMSegTokenizerFactor：中文分词器；
+
+<fieldType name="text_general_rev" class="solr.TextField" positionIncrementGap="100">
+    <analyzer type="index">
+        <tokenizer class="com.chenlb.mmseg4j.solr.MMSegTokenizerFactory"/>
+        <filter class="solr.StopFilterFactory" words="stopwords.txt" ignoreCase="true"/>
+        <filter class="solr.LowerCaseFilterFactory"/>
+        <filter class="solr.ReversedWildcardFilterFactory" maxPosQuestion="2" maxFractionAsterisk="0.33" maxPosAsterisk="3" withOriginal="true"/>
+    </analyzer>
+    <analyzer type="query">
+        <tokenizer class="com.chenlb.mmseg4j.solr.MMSegTokenizerFactory"/>
+        <filter class="solr.SynonymGraphFilterFactory" expand="true" ignoreCase="true" synonyms="synonyms.txt"/>
+        <filter class="solr.StopFilterFactory" words="stopwords.txt" ignoreCase="true"/>
+        <filter class="solr.LowerCaseFilterFactory"/>
+    </analyzer>
+</fieldType>
+```
+
+* field_double_*:
+```xml
+<dynamicField name="field_double_*" type="double" multiValued="true" indexed="true" stored="false"/>
+```
+```xml
+<fieldType name="double" class="solr.TrieDoubleField" positionIncrementGap="0" docValues="true" precisionStep="0"/>
+```
+* field_boolean_*:
+```xml
+<dynamicField name="field_boolean_*" type="boolean" indexed="true" stored="false"/>
+```
+```xml
+<fieldType name="boolean" class="solr.BoolField" sortMissingLast="true"/>
+```
+* field_list_*:
+```xml
+<dynamicField name="field_list_*" type="int" multiValued="true" indexed="true" stored="true"/>
+```
+```xml
+<fieldType name="int" class="solr.TrieIntField" positionIncrementGap="0" docValues="true" precisionStep="0"/>
+```
+* 注：field_coord_*还在设计中
+
+=== solr index doc的整体结构
+* 含有唯一标识id，为formdata中每个值的id；
+
+* 不同表之间fid可能重合，例如对form１进行query：[field_text_13:slor]，可能在form２中也存在field_text_13含有slor，从而造成返回结果错误；为区别不同的form，在solr index doc中记录一个baseId；
+
+* 最后添加一个createDate,因此完整的表结构如下所示：
+```json
+{
+  "id": "59817dda2fe4a6bf00054f43",
+  "baseId": "b57a3daf-114b-4341-a9ad-c1ed30e22b8c",
+  "field_text_1": [
+    "司徒囧美日秀"
+  ],
+  "field_text_2": [
+    "http://7xs74m.com1.z0.glb.clouddn.com/1ef1cffb-0f0c-45d6-9e67-a68f9c29f420?e=1490780972&token=fZZHQu4JaXWtlWu9hvTpc9Rk4BFgUPngfAoq8Nio:NsG45CmST7gkPc8_QedsSi1DOhY="
+  ],
+  "field_text_7": [
+    "The daily show"
+  ],
+  "field_double_801": [
+    2017.0
+  ],
+  "field_double_802": [
+    3.0
+  ],
+  "field_double_803": [
+    9.0
+  ],
+  "field_text_804": [
+    "2017-04-09"
+  ],
+  "field_text_9": [
+    "S22E74"
+  ],
+  "field_list_14": [
+    17985
+  ],
+  "field_double_13": [
+    9.0,
+    7.0,
+    6.0
+  ],
+  "field_boolean_16": true,
+  "createDate": "2017-08-17T09:52:03Z",
+  "_version_": 1575941280702136320
+}
+```
+=== 备注
+form中内容为空时，不在solr index doc中添加相应的字段；
+
+多语言的存储，在jsondata中的map结构[en="solr"]改为solr index doc中的单文本:solr,不再存储为一个map；
+
+
+
