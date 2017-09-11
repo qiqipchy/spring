@@ -33,13 +33,13 @@ image::inverted index.jpg[inverted-index,300,200]
 </document>
 ```
 
-** solr doc中只含有<field>元素，<field>元素拥有一个属性为name，其取值范围为定义在schema.xml中<field>的name属性取值集合，相当于是通过name属性引用schema.xml中定义好的<field>元素，在schema.xml中定义了<field>元素的常用属性：
+- solr doc中只含有<field>元素，<field>元素拥有一个属性为name，其取值范围为定义在schema.xml中<field>的name属性取值集合，相当于是通过name属性引用schema.xml中定义好的<field>元素，在schema.xml中定义了<field>元素的常用属性：
 ```xml
 example for <field> in schema.xml
 <field name="FIELD_NAME" type="REF_FIELDTYPE_NAME" index="true" stored="true" multiValued="false"/>
 ```
 
-*** 包括该元素的类型：type
+-- 包括该元素的类型：type
 
 **** 类型决定了<field>元素中的文本数据怎么解析，存储以及搜索，通过引用<fieldType>元素的name属性确定。<fieldType>需在schema.xml定义，主要确定了<field>元素中文本的类型，以及进行index过程和query过程的<analyzer>
 
