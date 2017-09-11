@@ -2,13 +2,13 @@
 
 == 基本设计方案
 
-* 搜索内容为叶节点中的内容，所以将整个 `jsondata` 平铺为一个`solr doc`用以`index`进行之后的搜索，
-也就是说`solr doc`中的`<field>`文本区存储的是`dbc doc`中叶节点的文本内容。
-* 这种结构保持了一条`jsondata`数据中各个字段之间的联系，将一个`jsondata`转换为可进行`index`的一个`solr doc`，
+* 搜索内容为叶节点中的内容，所以将整个  `jsondata`  平铺为一个 `solr doc`  用以  `index`  进行之后的搜索，
+也就是说 `solr doc` 中的 `<field>` 文本区存储的是 `dbc doc` 中叶节点的文本内容。
+* 这种结构保持了一条 `jsondata` 数据中各个字段之间的联系，将一个 `jsondata` 转换为可进行 `index` 的一个 `solr doc` ，
 方便进行多字段之间的联合查找以及查询结果的按列排序。
 
 === Solr基本介绍
-* `Solr`使用`inverted index`进行文档的搜索；存储的是`term`和对应的`docId`，以`term`为中心，如图所示：
+*  `Solr` 使用 `inverted index` 进行文档的搜索；存储的是 `term` 和对应的 `docId` ，以 `term` 为中心，如图所示：
 
 
 ** inverted index
@@ -16,32 +16,32 @@
 image:https://github.com/qiqipchy/dbc.docs/blob/master/images/inverted%20index.png?raw=true[alt="inverted index.",width=128]
 
 
-* 对`slor doc`中`<field>`元素的文本进行analyze，进而将文本存储为`inverted index`的过程成为`index`；对输入的查询字符串字符串进行analyze，进而在`inverted index`中进行检索的过程称为`query`；
+* 对 `slor doc` 中 `<field>` 元素的文本进行analyze，进而将文本存储为 `inverted index` 的过程成为 `index` ；对输入的查询字符串字符串进行analyze，进而在 `inverted index` 中进行检索的过程称为 `query` ；
 
-* 用于index的一个`solr doc`可采用xml格式进行表示(也可以有别的格式如json,这里着重介绍xml格式)，根元素为`<doc>`。如下所示：
+* 用于index的一个 `solr doc` 可采用xml格式进行表示(也可以有别的格式如json,这里着重介绍xml格式)，根元素为 `<doc>` 。如下所示：
 +
-```xml
+ ``  `xml
 注：该example.xml文件中只含有一个solr doc
 <doc>
-	<field name="REF_FIELD1_NAME">FIELD_1_TEXT</field>
-	<field name="REF_FIELD2_NAME">FIELD_2_TEXT</field>
-	<field name="REF_FIELD3_NAME">FIELD_3_TEXT</field>
-	…………
+  <field name="REF_FIELD1_NAME">FIELD_1_TEXT</field>
+  <field name="REF_FIELD2_NAME">FIELD_2_TEXT</field>
+  <field name="REF_FIELD3_NAME">FIELD_3_TEXT</field>
+  …………
 </doc>
-```
+ ``  `
 
-- `solr doc`中只含有`<field>`元素，`<field>`元素拥有一个属性为`name`，其取值范围为定义在`schema.xml`中`<field>`的`name`属性取值集合，相当于是通过`name`属性引用`schema.xml`中定义好的`<field>`元素，在`schema.xml`中定义了`<field>`元素的常用属性：
+-  `solr doc` 中只含有 `<field>` 元素， `<field>` 元素拥有一个属性为 `name` ，其取值范围为定义在 `schema.xml` 中 `<field>` 的 `name` 属性取值集合，相当于是通过 `name` 属性引用 `schema.xml` 中定义好的 `<field>` 元素，在 `schema.xml` 中定义了 `<field>` 元素的常用属性：
 +
-```xml
-注：example for <field> in schema.xml 
+ ``  `xml
+注：example for <field> in schema.xml
 <field name="FIELD_NAME" type="REF_FIELDTYPE_NAME" index="true" stored="true" multiValued="false"/>
-```
+ ``  `
 
-** 包括该元素的类型：`type`
+** 包括该元素的类型： `type` 
 
-*** 类型决定了`<field>`元素中的文本数据怎么解析，存储以及搜索，通过引用`<fieldType>`元素的`name`属性确定。`<fieldType>`需在`schema.xml`定义，主要确定了`<field>`元素中文本的类型，以及进行index过程和query过程的`<analyzer>`
+*** 类型决定了 `<field>` 元素中的文本数据怎么解析，存储以及搜索，通过引用 `<fieldType>` 元素的 `name` 属性确定。 `<fieldType>` 需在 `schema.xml` 定义，主要确定了 `<field>` 元素中文本的类型，以及进行index过程和query过程的 `<analyzer>` 
 +
-```xml
+ ``  `xml
 
 
 注：example for <fieldType>。通过定义<fieldType>元素中的<analyzer>子元素设定用于index过程和用于query过程的analyzer，两者可以相同，也可以不同。
@@ -62,21 +62,21 @@ image:https://github.com/qiqipchy/dbc.docs/blob/master/images/inverted%20index.p
 </fieldType>
 
 注：<fieldType>还拥有额外的高级性质和子元素
-```
+ ``  `
 
-** 是否为多值：`multiValued`
+** 是否为多值： `multiValued` 
 
-*** 如果为`true`，则上文中的`example.xml`中的`solr doc`中可出现多个`name`属性值相同的`<field>`元素；如果为`false`，则只能出现一个
+*** 如果为 `true` ，则上文中的 `example.xml` 中的 `solr doc` 中可出现多个 `name` 属性值相同的 `<field>` 元素；如果为 `false` ，则只能出现一个
 
-** 是否为可检索的：`index`
+** 是否为可检索的： `index` 
 
-*** 一般都设置为`true`
+*** 一般都设置为 `true` 
 
-** 是否需要存储：`stored`
+** 是否需要存储： `stored` 
 
-*** true表示存储该`<field>`元素的中文本内容，使用solr进行检索时，返回结果中显示该`<field>`元素中的文本；
+*** true表示存储该 `<field>` 元素的中文本内容，使用solr进行检索时，返回结果中显示该 `<field>` 元素中的文本；
 
-*** 一般debug时设置为`true`，上线运行时无需设置为`true`
+*** 一般debug时设置为 `true` ，上线运行时无需设置为 `true` 
 
 * 整个index流程如下：
 
@@ -87,133 +87,133 @@ image:https://github.com/qiqipchy/dbc.docs/blob/master/images/solr%20index.png?r
 
 * 因此建立solr应用的步骤为
 
-S. 确定`schema.xml`中的`<field>`元素和`<fieldType>`；(*_人工确定_*)
+S. 确定 `schema.xml` 中的 `<field>` 元素和 `<fieldType>` ；(*_人工确定_*)
 
-S. 根据`<field>`和`<fieldType>`将每一条`jsondata`转换为可用于进行`index`的`solr doc`；(`*_SolrJ API_*`)
+S. 根据 `<field>` 和 `<fieldType>` 将每一条 `jsondata` 转换为可用于进行 `index` 的 `solr doc` ；( `*_SolrJ API_*` )
 
-S. 将`2`中的`doc`加入到`Solr`服务器中，完成`inverted index`的建立；(`*_SolrJ API_*`)
+S. 将 `2` 中的 `doc` 加入到 `Solr` 服务器中，完成 `inverted index` 的建立；( `*_SolrJ API_*` )
 
-S. 解析用户搜索，建立用于`Solr`搜索的`url`；(`*_SolrJ API_*`)
+S. 解析用户搜索，建立用于 `Solr` 搜索的 `url` ；( `*_SolrJ API_*` )
 
-S. 发出搜索请求，得到相应；(`*_SolrJ API_*`)
+S. 发出搜索请求，得到相应；( `*_SolrJ API_*` )
 
 === 设计内容
 
-==== Step A.1：`<field>`确定
+==== Step A.1： `<field>` 确定
 
-. 由于用户可自我设计`dbc field`名称，因此在`solr doc`中，`<field>`属性`name`值的基本格式为`fid_field`，查询存储都比较简洁；
+. 由于用户可自我设计 `dbc field` 名称，因此在 `solr doc` 中， `<field>` 属性 `name` 值的基本格式为 `fid_field` ，查询存储都比较简洁；
 
-. 由于`dbc`每个`form`的`field id`不同，总数不同，因此将`fid_field`设计成为       `<dynamicField>`类型，也就是`*_field`；
+. 由于 `dbc` 每个 `form` 的 `field id` 不同，总数不同，因此将 `fid_field` 设计成为        `<dynamicField>` 类型，也就是 `*_field` ；
 
-. 不同的`<fieldType>`代表了在index和query的过程中进行不同的处理操作，因此根据`dbc field`中的不同类型，将`fid_field`进一步分为几大类，`fid_field_int,fid_field_boolean,fid_field_str,fie_field_text,fid_field_coor,fid_field_double`；(这里的`field`类型可以增加)
+. 不同的 `<fieldType>` 代表了在index和query的过程中进行不同的处理操作，因此根据 `dbc field` 中的不同类型，将 `fid_field` 进一步分为几大类， `fid_field_int,fid_field_boolean,fid_field_str,fie_field_text,fid_field_coor,fid_field_double` ；(这里的 `field` 类型可以增加)
 
-- 也就是`*_field_int,*_field_boolean,*_field_str,*_field_text,*_field_coor,*_field_double`；
+- 也就是 `*_field_int,*_field_boolean,*_field_str,*_field_text,*_field_coor,*_field_double` ；
 
-* 由于`dbc`中拓展的存在，所以每个`<field>`都设计成为`multiValued=true`，用以存储同一`dbc field`的多个值；
-在query的时候，由于最后只需返回`inverted index`中的`id`，所以其他`<field>`全部设置为`stored=false`；
+* 由于 `dbc` 中拓展的存在，所以每个 `<field>` 都设计成为 `multiValued=true` ，用以存储同一 `dbc field` 的多个值；
+在query的时候，由于最后只需返回 `inverted index` 中的 `id` ，所以其他 `<field>` 全部设置为 `stored=false` ；
 
-* `<field>`中的文本内容可能需要进行排序等高级操作，所以设置为`index=true`；
+*  `<field>` 中的文本内容可能需要进行排序等高级操作，所以设置为 `index=true` ；
 
-==== Step A.2：`<fieldType>`的确定
+==== Step A.2： `<fieldType>` 的确定
 
-对`*_field_int,*_field_boolean,*_field_str,*_field_text,*_field_coord,*_field_double`进行`<fieldType>`的确认，目前的基本方案为：
+对 `*_field_int,*_field_boolean,*_field_str,*_field_text,*_field_coord,*_field_double` 进行 `<fieldType>` 的确认，目前的基本方案为：
 
-* `**_field_int*`:
+*  `**_field_int*` :
 +
-```xml
+ ``  `xml
 <dynamicField name="*_field_int" type="ints" indexed="true" stored="true"/>
-```
+ ``  `
 +
-```xml
+ ``  `xml
 <fieldType name="ints" class="solr.TrieIntField" positionIncrementGap="0" docValues="true" multiValued="true" precisionStep="0"/>
 
-``` 
+ ``  `
 
 
-* `**_field_boolean*`:
+*  `**_field_boolean*` :
 +
-```xml
+ ``  `xml
 <dynamicField name="*_field_boolean" type="booleans" indexed="true" stored="true"/>
-```
+ ``  `
 +
-```xml
+ ``  `xml
 <fieldType name="booleans" class="solr.BoolField" sortMissingLast="true" multiValued="true"/>
-```
+ ``  `
 
-* `**_field_str*`:
+*  `**_field_str*` :
 +
-```xml
+ ``  `xml
 <dynamicField name="*_field_str" type="strings" indexed="true" stored="true"/>
-```
+ ``  `
 +
-```xml
+ ``  `xml
 <fieldType name="strings" class="solr.StrField" sortMissingLast="true" docValues="true" multiValued="true"/>
-```
-* `**_field_text*`:
+ ``  `
+*  `**_field_text*` :
 +
-```xml
+ ``  `xml
 <dynamicField name="*_field_text" type="textMaxWords" indexed="true" stored="true"/>
-```
+ ``  `
 +
-```xml
+ ``  `xml
 <fieldType name="textMaxWords" class="solr.TextField" positionIncrementGap="100" multiValued="true">
   <analyzer>
      <tokenizer class="com.chenlb.mmseg4j.solr.MMSegTokenizerFactory" mode="max-word"/>
   </analyzer>
 </fieldType>
-```
+ ``  `
 
-* `**_field_coor*`:
+*  `**_field_coor*` :
 +
-```xml
+ ``  `xml
 <dynamicField name="*_field_coor" type="location" multiValued="true" indexed="true" stored="true"/>
-```
+ ``  `
 +
-```xml
+ ``  `xml
 <fieldType name="location" class="solr.LatLonPointSpatialField" docValues="true"/>
-```
+ ``  `
 
-* `**_field_double*`:
+*  `**_field_double*` :
 +
-```xml
+ ``  `xml
 <dynamicField name="*_field_double" type="doubles" indexed="true" stored="true"/>
-```
+ ``  `
 +
-```xml
+ ``  `xml
 <fieldType name="doubles" class="solr.TrieDoubleField" positionIncrementGap="0" docValues="true" multiValued="true" precisionStep="0"/>
-```
+ ``  `
 
-==== Step B：构建用于`index`的`Solr doc`整体结构
+==== Step B：构建用于 `index` 的 `Solr doc` 整体结构
 
 
-将`jsondata`数据转换为用于`index`的`Solr doc`
+将 `jsondata` 数据转换为用于 `index` 的 `Solr doc` 
 
 * 基本结构（*_初步结构_*）
 +
-原始的`jsondata`为：
+原始的 `jsondata` 为：
 
 +
-.example for jsondata 
+.example for jsondata
 [options="header,footer",cols="^m,^m,^m,^m,^m,^m,^m,^m"]
 |=======================
 |docId              2+|fid 1    |fid 2      |fid 3  |fid 4      |fid 5  |fid 6
-|JSONDATA_DOCID     |1  |2      |true       |STR    |TEXT TEXT  |39.887334591956794,116.28375411246358  |9.0    
+|JSONDATA_DOCID     |1  |2      |true       |STR    |TEXT TEXT  |39.887334591956794,116.28375411246358  |9.0
 |=======================
 
 
 - 构建步骤：
 
-. 含有唯一标识`id`，为`jsondata`中的`docId`；
+. 含有唯一标识 `id` ，为 `jsondata` 中的 `docId` ；
 
-. 不同表之间`dbc fid`可能重合，例如对`form１`进行`query：[13_field_text:slor]`，可能在`form２`中也存在`13_field_text`含有`slor`，从而造成返回结果错误；为区别不同的`form`，在`solr doc`中记录一个`baseId`；
+. 不同表之间 `dbc fid` 可能重合，例如对 `form１` 进行 `query：[13_field_text:slor]` ，可能在 `form２` 中也存在 `13_field_text` 含有 `slor` ，从而造成返回结果错误；为区别不同的 `form` ，在 `solr doc` 中记录一个 `baseId` ；
 
-. 最后添加`updateTime`和`createTime`，`<fieldTye>`为`tdates`；
+. 最后添加 `updateTime` 和 `createTime` ， `<fieldTye>` 为 `tdates` ；
 
-. 考虑到多语言的特殊情况，将多语言的`*_field_text`进行进一步的细化`*_LOCALE_field_text`;
+. 考虑到多语言的特殊情况，将多语言的 `*_field_text` 进行进一步的细化 `*_LOCALE_field_text` ;
 
-. 因此用于`index`的一个完整的`solr doc`结构如下所示：
+. 因此用于 `index` 的一个完整的 `solr doc` 结构如下所示：
 +
-```xml
+ ``  `xml
 <doc>
     <field name="id">JSONDATA_DOCID</field>
     <field name="baseId">JSONDATA_FORMID</field>
@@ -227,58 +227,58 @@ S. 发出搜索请求，得到相应；(`*_SolrJ API_*`)
     <field name="5_field_coor">39.887334591956794,116.28375411246358</field>
     <field name="6_field_double">9.0</field>
 </doc>
-```
+ ``  `
 * 排序结构（*_最终结构_*)
 +
-. 在`Solr`中无法对`multivalued=true`的`<field>`进行`sort`排序；
+. 在 `Solr` 中无法对 `multivalued=true` 的 `<field>` 进行 `sort` 排序；
 
-- 解决方案：对以上提到的6种`<dynamicField>`的进行扩中，增加用于排序的`<dynamicField>`。以`*_field_int`为例，增加
+- 解决方案：对以上提到的6种 `<dynamicField>` 的进行扩中，增加用于排序的 `<dynamicField>` 。以 `*_field_int` 为例，增加
 +
-```xml
+ ``  `xml
 <dynamicField name="*_field_int_sort" type="int" sortMissingLast="true" indexed="false" stored="false"/>
-```
+ ``  `
 +
-.增加排序x相关的`field` 
+.增加排序x相关的 `field` 
 [options="header",cols="^m,^m,^m"]
 |=======================
-|               |*_field_int                |*_field_int_sort     
+|               |*_field_int                |*_field_int_sort
 |格式说明       |fid_field_int              |vid_fid_field_int_sort
 |multiValued    |true                       |false
 |用途           |检索                       |排序
 |=======================
-注：其中的`vid`指明了`dbc field`中扩展的每一个元素，`vid`表示的是添加顺序。
+注：其中的 `vid` 指明了 `dbc field` 中扩展的每一个元素， `vid` 表示的是添加顺序。
 
-- 对上述的`jsondata`建立排序结构：
+- 对上述的 `jsondata` 建立排序结构：
 +
-```xml
+ ``  `xml
     ……
     <field name="1_field_int">1</field>
     <field name="1_field_int">2</field>
     <field name="1_1_field_int_sort">1</field>
     <field name="2_1_field_int_sort">2</field>
     ……
-```
+ ``  `
 
-. 对于`*_field_text`来说，由于对原始文本进行了分词，所以添加相关排序`<field>`时，需要将`type`设置为`strings`，存储原始文本；
+. 对于 `*_field_text` 来说，由于对原始文本进行了分词，所以添加相关排序 `<field>` 时，需要将 `type` 设置为 `strings` ，存储原始文本；
 +
-```xml
+ ``  `xml
   <dynamicField name="*_field_text_sort" type="string" sortMissingLast="true" indexed="false" stored="false"/>
-```
+ ``  `
 
-因此对上述的`jsondata`建立的最终`solr doc`如下所示：
+因此对上述的 `jsondata` 建立的最终 `solr doc` 如下所示：
 
-```xml
+ ``  `xml
 <doc>
     <field name="id">JSONDATA_DOCID</field>
     <field name="baseId">JSONDATA_FORMID</field>
     <field name="createTime">2017-09-06T01:30:41Z</field>
     <field name="updateTime">2017-09-06T01:30:41Z</field>
-    
+
     <field name="1_field_int">1</field>
     <field name="1_field_int">2</field>
     <field name="1_1_field_int_sort">1</field>
     <field name="2_1_field_int_sort">2</field>
-    
+
     <field name="2_field_boolean">true</field>
     <field name="1_2_field_boolean_sort">true</field>
 
@@ -294,33 +294,33 @@ S. 发出搜索请求，得到相应；(`*_SolrJ API_*`)
     <field name="1_6_field_double_sort">9.0</field>
 
 </doc>
-```
-==== Step C：建立`inverted index`
+ ``  `
+==== Step C：建立 `inverted index` 
 
-* 借助`solrClient.add(SolrDocument document)`方法将上一步骤中构建好的`solr doc`添加到`Solr server`中，自动完成`index`的过程，生成`inverted index`；
+* 借助 `solrClient.add(SolrDocument document)` 方法将上一步骤中构建好的 `solr doc` 添加到 `Solr server` 中，自动完成 `index` 的过程，生成 `inverted index` ；
 
 
-==== Step D：建立`Solr query url`
+==== Step D：建立 `Solr query url` 
 
-* 根据前台查询要求构建合法的`url`进行查询；
+* 根据前台查询要求构建合法的 `url` 进行查询；
 
 
 * 如有排序：
 
-- 对于需要排序的`dbc field`，获取其`fid`，得到目前该`dbc field`中的最大拓展次数`M`，构建`sort`：
+- 对于需要排序的 `dbc field` ，获取其 `fid` ，得到目前该 `dbc field` 中的最大拓展次数 `M` ，构建 `sort` ：
 +
-`sort=1_fid_field_int_sort desc,2_fid_field_int_sort desc,……,M_fid_field_int_sort desc`
+ `sort=1_fid_field_int_sort desc,2_fid_field_int_sort desc,……,M_fid_field_int_sort desc` 
 
 ==== Step E：实施检索
 
-* 借助`solrClient.query(SolrQuery query)`方法进行检索，得到结果。
+* 借助 `solrClient.query(SolrQuery query)` 方法进行检索，得到结果。
 
-** 说明：`query`和上述`url`相对应，只要将上述中的`url`转换为相应的`SolrQuery`即可.
+** 说明： `query` 和上述 `url` 相对应，只要将上述中的 `url` 转换为相应的 `SolrQuery` 即可.
 
 
 
 === 备注
-. `jsondata`中某个`dbc field`值为空，使用`SolrJ`构建`solr doc`时不添加相应的`<field>`；
+.  `jsondata` 中某个 `dbc field` 值为空，使用 `SolrJ` 构建 `solr doc` 时不添加相应的 `<field>` ；
 
 
 
