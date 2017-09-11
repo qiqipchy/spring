@@ -35,7 +35,9 @@ image::inverted index.jpg[inverted-index,300,200]
 
 ** solr doc中只含有<field>元素，<field>元素拥有一个属性为name，其取值范围为定义在schema.xml中<field>的name属性取值集合，相当于是通过name属性引用schema.xml中定义好的<field>元素，在schema.xml中定义了<field>元素的常用属性：
 
-*** ```xml
+*** 
+
+```xml
 example for <field> in schema.xml
 <field name="FIELD_NAME" type="REF_FIELDTYPE_NAME" index="true" stored="true" multiValued="false"/>
 ```
