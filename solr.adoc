@@ -22,9 +22,9 @@ image::inverted index.jpg[inverted-index,300,200]
 
 * 对slor doc中<field>元素的文本进行analyze，进而讲文本存储为inverted index的过程成为index；对输入的查询字符串字符串进行analyze，进而在inverted index中进行检索的过程称为query；
 
-* 用于index的一个solr doc可采用xml格式进行表示(也可以有别的格式如json,这里着重介绍xml格式)，根元素为document,。如下所示example.xml：
+* 用于index的一个solr doc可采用xml格式进行表示(也可以有别的格式如json,这里着重介绍xml格式)，根元素为document。如下所示：
 ```xml
-注：该xml文件中只含有一个solr doc
+注：该example.xml文件中只含有一个solr doc
 <document>
 	<field name="FIELD1_REF_NAME">FIELD_1_TEXT</field>
 	<field name="FIELD2_REF_NAME">FIELD_2_TEXT</field>
@@ -33,7 +33,7 @@ image::inverted index.jpg[inverted-index,300,200]
 </document>
 ```
 
-** 每一个solr doc中只含有<field>元素，<filed>元素拥有一个属性为name，其取值范围为定义在schema.xml中<field>的name属性取值集合，相当于是通过name属性引用schema.xml中定义好的<field>元素，在schema.xml中定义了<field>元素的所有属性：
+** solr doc中只含有<field>元素，<filed>元素拥有一个属性为name，其取值范围为定义在schema.xml中<field>的name属性取值集合，相当于是通过name属性引用schema.xml中定义好的<field>元素，在schema.xml中定义了<field>元素的所有属性：
 
 ```xml
 example for <field> in schema.xml
