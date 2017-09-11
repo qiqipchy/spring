@@ -309,7 +309,7 @@ S. 发出搜索请求，得到相应；( `*_SolrJ API_*` )
 
 - 对于需要排序的 `dbc field` ，获取其 `fid` ，得到目前该 `dbc field` 中的最大拓展次数 `M` ，构建 `sort` ：
 +
- `sort=1_fid_field_int_sort desc,2_fid_field_int_sort desc,……,M_fid_field_int_sort desc` 
+`sort=1_fid_field_int_sort desc,2_fid_field_int_sort desc,……,M_fid_field_int_sort desc`
 
 ==== Step E：实施检索
 
