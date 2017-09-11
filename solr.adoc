@@ -7,9 +7,9 @@ v1.0, 2017-08-17
 :numbered:
 == 基本设计方案
 
-搜索内容为叶节点中的内容，所以将整个form中的数据jsondata平铺为一个solr doc用以index进行之后的搜索，
+- 搜索内容为叶节点中的内容，所以将整个form中的数据jsondata平铺为一个solr doc用以index进行之后的搜索，
 也就是说solr doc中的<field>文本区存储的是dbc doc中叶节点的文本内容。
-这种结构最大程度保持了一条jsondata数据中各个字段之间的联系，将一个jsondata转换为solr中可进行查询排序操作的一个doc，
+- 这种结构保持了一条jsondata数据中各个字段之间的联系，将一个jsondata转换为可进行index的一个solr doc，
 方便进行多字段之间的联合查找以及查询结果的按列排序。
 
 === solr基本介绍
