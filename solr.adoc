@@ -81,7 +81,7 @@ example for <fieldType>
 
 **** 一般debug时设置为true，上线运行时无需设置为true
 
-* 整个index流程如下：
+- 整个index流程如下：
 
 [#img-index process]
 .index process
